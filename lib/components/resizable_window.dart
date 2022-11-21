@@ -1,0 +1,280 @@
+import 'package:dashboard/Constants.dart';
+import 'package:flutter/material.dart';
+
+double headerSize = 30;
+
+class ResizableWindow extends StatefulWidget {
+  ResizableWindow({
+    required this.body,
+    required this.title,
+    required this.defaultWidth,
+    required this.defaultHeight,
+    required this.sizable,
+    required this.haveCloseButton,
+  }) : super(key: UniqueKey()) {
+    currentHeight = defaultHeight;
+    currentWidth = defaultWidth;
+  }
+
+  final Widget body;
+  final String title;
+  final bool sizable;
+  final bool haveCloseButton;
+  late double currentHeight, defaultHeight = defaultHeight;
+  late double currentWidth, defaultWidth = defaultWidth;
+  late double x;
+  late double y;
+  late Function(double, double) onWindowDragged;
+  late Function() onCloseButtonClicked;
+
+  @override
+  _ResizableWindowState createState() => _ResizableWindowState();
+}
+
+class _ResizableWindowState extends State<ResizableWindow> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(defaultBoarderRadius)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x54000000),
+            spreadRadius: 1,
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      height: (widget.sizable) ? widget.currentHeight : widget.defaultHeight,
+      width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius:
+                BorderRadius.all(Radius.circular(defaultBoarderRadius)),
+            child: Column(
+              children: [_header(), _body()],
+            ),
+          ),
+          Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onHorizontalDragUpdate: _onHorizontalDragRight,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeLeftRight,
+                  opaque: true,
+                  child: Container(
+                    width: 4,
+                  ),
+                ),
+              )),
+          Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: GestureDetector(
+                onHorizontalDragUpdate: _onHorizontalDragLeft,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeLeftRight,
+                  opaque: true,
+                  child: Container(
+                    width: 4,
+                  ),
+                ),
+              )),
+          Positioned(
+              left: 0,
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onVerticalDragUpdate: _onHorizontalDragTop,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpDown,
+                  opaque: true,
+                  child: Container(
+                    height: 4,
+                  ),
+                ),
+              )),
+          Positioned(
+              left: 0,
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onVerticalDragUpdate: _onHorizontalDragBottom,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpDown,
+                  opaque: true,
+                  child: Container(
+                    height: 4,
+                  ),
+                ),
+              )),
+          Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onPanUpdate: _onHorizontalDragBottomRight,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpLeftDownRight,
+                  opaque: true,
+                  child: Container(
+                    height: 6,
+                    width: 6,
+                  ),
+                ),
+              )),
+          Positioned(
+              bottom: 0,
+              left: 0,
+              child: GestureDetector(
+                onPanUpdate: _onHorizontalDragBottomLeft,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpRightDownLeft,
+                  opaque: true,
+                  child: Container(
+                    height: 6,
+                    width: 6,
+                  ),
+                ),
+              )),
+          Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onPanUpdate: _onHorizontalDragTopRight,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpRightDownLeft,
+                  opaque: true,
+                  child: Container(
+                    height: 6,
+                    width: 6,
+                  ),
+                ),
+              )),
+          Positioned(
+              left: 0,
+              top: 0,
+              child: GestureDetector(
+                onPanUpdate: _onHorizontalDragTopLeft,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpLeftDownRight,
+                  opaque: true,
+                  child: Container(
+                    height: 6,
+                    width: 6,
+                  ),
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  _header() {
+    return GestureDetector(
+      onPanUpdate: (tapInfo) {
+        widget.onWindowDragged(tapInfo.delta.dx, tapInfo.delta.dy);
+      },
+      child: Container(
+        width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
+        height: headerSize,
+        color: const Color(0xff111111),
+        child: Stack(
+          alignment: AlignmentDirectional.centerEnd,
+          children: [
+            Center(
+              child: Text(
+                widget.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: widget.onCloseButtonClicked,
+              icon: const Icon(
+                Icons.close,
+                color: Color(0xfff48771),
+                size: 16,
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  _body() {
+    return Container(
+      width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
+      height: ((widget.sizable) ? widget.currentHeight : widget.defaultHeight) -
+          headerSize,
+      color: onBackroundColor,
+      child: widget.body,
+    );
+  }
+
+  void _onHorizontalDragLeft(DragUpdateDetails details) {
+    setState(() {
+      widget.currentWidth -= details.delta.dx;
+      if (widget.currentWidth < widget.defaultWidth) {
+        widget.currentWidth = widget.defaultWidth;
+      } else {
+        widget.onWindowDragged(details.delta.dx, 0);
+      }
+    });
+  }
+
+  void _onHorizontalDragRight(DragUpdateDetails details) {
+    setState(() {
+      widget.currentWidth += details.delta.dx;
+      if (widget.currentWidth < widget.defaultWidth) {
+        widget.currentWidth = widget.defaultWidth;
+      }
+    });
+  }
+
+  void _onHorizontalDragBottom(DragUpdateDetails details) {
+    setState(() {
+      widget.currentHeight += details.delta.dy;
+      if (widget.currentHeight < widget.defaultHeight) {
+        widget.currentHeight = widget.defaultHeight;
+      }
+    });
+  }
+
+  void _onHorizontalDragTop(DragUpdateDetails details) {
+    setState(() {
+      widget.currentHeight -= details.delta.dy;
+      if (widget.currentHeight < widget.defaultHeight) {
+        widget.currentHeight = widget.defaultHeight;
+      } else {
+        widget.onWindowDragged(0, details.delta.dy);
+      }
+    });
+  }
+
+  void _onHorizontalDragBottomRight(DragUpdateDetails details) {
+    _onHorizontalDragRight(details);
+    _onHorizontalDragBottom(details);
+  }
+
+  void _onHorizontalDragBottomLeft(DragUpdateDetails details) {
+    _onHorizontalDragLeft(details);
+    _onHorizontalDragBottom(details);
+  }
+
+  void _onHorizontalDragTopRight(DragUpdateDetails details) {
+    _onHorizontalDragRight(details);
+    _onHorizontalDragTop(details);
+  }
+
+  void _onHorizontalDragTopLeft(DragUpdateDetails details) {
+    _onHorizontalDragLeft(details);
+    _onHorizontalDragTop(details);
+  }
+}
