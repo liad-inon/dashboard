@@ -1,8 +1,9 @@
-import 'package:dashboard/Constants.dart';
+import 'package:dashboard/components/transform_dynamic/transform_dynamic_group.dart';
 import 'package:flutter/material.dart';
 
 class TransformDynamic extends StatefulWidget {
   TransformDynamic({
+    required this.group,
     required this.body,
     required this.titleBar,
     required this.defaultWidth,
@@ -18,6 +19,7 @@ class TransformDynamic extends StatefulWidget {
     currentWidth = defaultWidth;
   }
 
+  final TransformDynamicGroup group;
   final Widget body;
   final Widget titleBar;
   final bool resizable;
@@ -31,21 +33,17 @@ class TransformDynamic extends StatefulWidget {
 
   late double x;
   late double y;
-  late Function(double, double) onWindowDragged;
-  late Function() onCloseButtonClicked;
 
   @override
   _TransformDynamicState createState() => _TransformDynamicState();
 }
 
 class _TransformDynamicState extends State<TransformDynamic> {
-  late double preWidth;
-  late double preHight;
-
   @override
   void initState() {
-    preWidth = widget.defaultWidth;
-    preHight = widget.defaultHeight;
+    super.initState();
+
+    widget.group.add(widget);
   }
 
   @override
@@ -73,7 +71,7 @@ class _TransformDynamicState extends State<TransformDynamic> {
 
   Widget _dragButton(Widget child) => GestureDetector(
         onPanUpdate: (tapInfo) {
-          widget.onWindowDragged(tapInfo.delta.dx, tapInfo.delta.dy);
+          widget.group.onDragged(widget, tapInfo.delta.dx, tapInfo.delta.dy);
         },
         child: child,
       );
@@ -206,7 +204,7 @@ class _TransformDynamicState extends State<TransformDynamic> {
   void _onHorizontalDragLeft(DragUpdateDetails details) {
     setState(() {
       if ((widget.currentWidth - details.delta.dx) > widget.minWidth) {
-        widget.onWindowDragged(details.delta.dx, 0);
+        widget.group.onDragged(widget, details.delta.dx, 0);
         widget.currentWidth -= details.delta.dx;
       }
     });
@@ -234,7 +232,7 @@ class _TransformDynamicState extends State<TransformDynamic> {
     setState(() {
       if ((widget.currentHeight - details.delta.dy) > widget.minHeight) {
         widget.currentHeight -= details.delta.dy;
-        widget.onWindowDragged(0, details.delta.dy);
+        widget.group.onDragged(widget, 0, details.delta.dy);
       }
     });
   }

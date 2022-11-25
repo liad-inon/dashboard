@@ -28,7 +28,7 @@ class _ScreenState extends State<Screen> {
             _windowsTitleBar(),
             Expanded(
               child: TransformDynamicBuilder(
-                children: [Window()],
+                children: [Window(child: Container(), title: 'test')],
               ),
             )
           ],

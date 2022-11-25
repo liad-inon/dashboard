@@ -4,7 +4,6 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dashboard/screen.dart';
 import 'package:flutter/material.dart';
 import 'Constants.dart';
-import 'models/api.dart';
 
 void main() {
   runApp(const App());
