@@ -1,61 +1,85 @@
 import 'package:dashboard/Constants.dart';
 import 'package:flutter/material.dart';
 
-double headerSize = 30;
-
-class ResizableWindow extends StatefulWidget {
-  ResizableWindow({
+class TransformDynamic extends StatefulWidget {
+  TransformDynamic({
     required this.body,
-    required this.title,
+    required this.titleBar,
     required this.defaultWidth,
     required this.defaultHeight,
-    required this.sizable,
-    required this.haveCloseButton,
+    required this.minWidth,
+    required this.minHeight,
+    required this.resizable,
+    required this.draggable,
+    this.decoration,
+    this.resizeDetectorsColor,
   }) : super(key: UniqueKey()) {
     currentHeight = defaultHeight;
     currentWidth = defaultWidth;
   }
 
   final Widget body;
-  final String title;
-  final bool sizable;
-  final bool haveCloseButton;
+  final Widget titleBar;
+  final bool resizable;
+  final bool draggable;
+  final BoxDecoration? decoration;
+  final Color? resizeDetectorsColor;
+  late double minWidth;
+  late double minHeight;
   late double currentHeight, defaultHeight = defaultHeight;
   late double currentWidth, defaultWidth = defaultWidth;
+
   late double x;
   late double y;
   late Function(double, double) onWindowDragged;
   late Function() onCloseButtonClicked;
 
   @override
-  _ResizableWindowState createState() => _ResizableWindowState();
+  _TransformDynamicState createState() => _TransformDynamicState();
 }
 
-class _ResizableWindowState extends State<ResizableWindow> {
+class _TransformDynamicState extends State<TransformDynamic> {
+  late double preWidth;
+  late double preHight;
+
+  @override
+  void initState() {
+    preWidth = widget.defaultWidth;
+    preHight = widget.defaultHeight;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.all(Radius.circular(defaultBoarderRadius)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x54000000),
-            spreadRadius: 1,
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      height: (widget.sizable) ? widget.currentHeight : widget.defaultHeight,
-      width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
+      decoration: widget.decoration,
+      height: widget.currentHeight,
+      width: widget.currentWidth,
       child: Stack(
         children: [
-          ClipRRect(
-            borderRadius:
-                BorderRadius.all(Radius.circular(defaultBoarderRadius)),
-            child: Column(
-              children: [_header(), _body()],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              (widget.draggable)
+                  ? _dragButton(widget.titleBar)
+                  : widget.titleBar,
+              widget.body,
+            ],
           ),
+          (widget.resizable) ? _resizeDetectors() : Container()
+        ],
+      ),
+    );
+  }
+
+  Widget _dragButton(Widget child) => GestureDetector(
+        onPanUpdate: (tapInfo) {
+          widget.onWindowDragged(tapInfo.delta.dx, tapInfo.delta.dy);
+        },
+        child: child,
+      );
+
+  Widget _resizeDetectors() => Stack(
+        children: [
           Positioned(
               right: 0,
               top: 0,
@@ -66,6 +90,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeLeftRight,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     width: 4,
                   ),
                 ),
@@ -80,6 +105,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeLeftRight,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     width: 4,
                   ),
                 ),
@@ -94,6 +120,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpDown,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 4,
                   ),
                 ),
@@ -108,6 +135,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpDown,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 4,
                   ),
                 ),
@@ -121,6 +149,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpLeftDownRight,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 6,
                     width: 6,
                   ),
@@ -135,6 +164,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpRightDownLeft,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 6,
                     width: 6,
                   ),
@@ -149,6 +179,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpRightDownLeft,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 6,
                     width: 6,
                   ),
@@ -163,68 +194,20 @@ class _ResizableWindowState extends State<ResizableWindow> {
                   cursor: SystemMouseCursors.resizeUpLeftDownRight,
                   opaque: true,
                   child: Container(
+                    color: widget.resizeDetectorsColor,
                     height: 6,
                     width: 6,
                   ),
                 ),
               )),
         ],
-      ),
-    );
-  }
-
-  _header() {
-    return GestureDetector(
-      onPanUpdate: (tapInfo) {
-        widget.onWindowDragged(tapInfo.delta.dx, tapInfo.delta.dy);
-      },
-      child: Container(
-        width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
-        height: headerSize,
-        color: const Color(0xff111111),
-        child: Stack(
-          alignment: AlignmentDirectional.centerEnd,
-          children: [
-            Center(
-              child: Text(
-                widget.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: widget.onCloseButtonClicked,
-              icon: const Icon(
-                Icons.close,
-                color: Color(0xfff48771),
-                size: 16,
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  _body() {
-    return Container(
-      width: (widget.sizable) ? widget.currentWidth : widget.defaultWidth,
-      height: ((widget.sizable) ? widget.currentHeight : widget.defaultHeight) -
-          headerSize,
-      color: onBackroundColor,
-      child: widget.body,
-    );
-  }
+      );
 
   void _onHorizontalDragLeft(DragUpdateDetails details) {
     setState(() {
-      widget.currentWidth -= details.delta.dx;
-      if (widget.currentWidth < widget.defaultWidth) {
-        widget.currentWidth = widget.defaultWidth;
-      } else {
+      if ((widget.currentWidth - details.delta.dx) > widget.minWidth) {
         widget.onWindowDragged(details.delta.dx, 0);
+        widget.currentWidth -= details.delta.dx;
       }
     });
   }
@@ -232,8 +215,8 @@ class _ResizableWindowState extends State<ResizableWindow> {
   void _onHorizontalDragRight(DragUpdateDetails details) {
     setState(() {
       widget.currentWidth += details.delta.dx;
-      if (widget.currentWidth < widget.defaultWidth) {
-        widget.currentWidth = widget.defaultWidth;
+      if (widget.currentWidth < widget.minWidth) {
+        widget.currentWidth = widget.minWidth;
       }
     });
   }
@@ -241,18 +224,16 @@ class _ResizableWindowState extends State<ResizableWindow> {
   void _onHorizontalDragBottom(DragUpdateDetails details) {
     setState(() {
       widget.currentHeight += details.delta.dy;
-      if (widget.currentHeight < widget.defaultHeight) {
-        widget.currentHeight = widget.defaultHeight;
+      if (widget.currentHeight < widget.minHeight) {
+        widget.currentHeight = widget.minHeight;
       }
     });
   }
 
   void _onHorizontalDragTop(DragUpdateDetails details) {
     setState(() {
-      widget.currentHeight -= details.delta.dy;
-      if (widget.currentHeight < widget.defaultHeight) {
-        widget.currentHeight = widget.defaultHeight;
-      } else {
+      if ((widget.currentHeight - details.delta.dy) > widget.minHeight) {
+        widget.currentHeight -= details.delta.dy;
         widget.onWindowDragged(0, details.delta.dy);
       }
     });

@@ -1,11 +1,12 @@
+import 'dart:async';
+
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dashboard/screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_js/flutter_js.dart';
 import 'Constants.dart';
+import 'models/api.dart';
 
 void main() {
-  final JavascriptRuntime jsRuntime = getJavascriptRuntime();
   runApp(const App());
 
   doWhenWindowReady(() {
